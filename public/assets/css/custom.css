@@ -1,0 +1,7 @@
+.select2-container {
+    width: 100% !important;
+}
+
+.datepicker-container {
+    z-index: 1060 !important;
+}
