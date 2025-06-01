@@ -17,7 +17,7 @@ class StudentController extends Controller
     {
         $users = User::all();
         $classes = ClassModel::all();
-        $students = Student::all();
+        $students = Student::with('class')->get(); // include relasi kelas
         return view('student.index', compact('students', 'users', 'classes'));
     }
 
@@ -128,36 +128,43 @@ class StudentController extends Controller
 
     // Bersihkan header
     $header = array_map('strtolower', array_map('trim', $rows[0]));
-$expectedHeader = ['nisn', 'nama', 'kelas', 'wa_ortu'];
+    $expectedHeader = ['nisn', 'nama', 'kelas', 'wa_ortu'];
 
-$diff = array_diff($expectedHeader, $header);
-if (count($diff) > 0) {
-    return back()->withErrors([
-        'Format header salah. Gunakan header persis: ' . implode(', ', $expectedHeader)
-    ]);
-}
-
+    $diff = array_diff($expectedHeader, $header);
+    if (count($diff) > 0) {
+        return back()->withErrors([
+            'Format header salah. Gunakan header persis: ' . implode(', ', $expectedHeader)
+        ]);
+    }
 
     unset($rows[0]); // hapus header
 
     $errors = [];
+
     foreach ($rows as $index => $row) {
         if (count($row) < 4) continue;
 
+        $classCode = trim($row[2]);
+        $class = ClassModel::where('code', $classCode)->first();
+
+        if (!$class) {
+            $errors["Baris " . ($index + 2)][] = 'Kelas "' . $classCode . '" tidak ditemukan di database.';
+            continue;
+        }
+
         $data = [
-        'nisn' => trim($row[0]),
-        'name' => trim($row[1]),
-        'class_id' => trim($row[2]),
-        'wa_ortu' => '+62' . ltrim(trim($row[3]), '0'),
-    ];
+            'nisn' => trim($row[0]),
+            'name' => trim($row[1]),
+            'class_id' => $class->id,
+            'wa_ortu' => '+62' . ltrim(trim($row[3]), '0'),
+        ];
 
         $validator = Validator::make($data, [
-        'nisn' => 'required|string|max:255|unique:students,nisn',
-        'name' => 'required|string|max:255',
-        'wa_ortu' => ['nullable', 'regex:/^\+62\d{9,15}$/'],
-        'class_id' => 'required|exists:classes,id',
-    ]);
-
+            'nisn' => 'required|string|max:255|unique:students,nisn',
+            'name' => 'required|string|max:255',
+            'wa_ortu' => ['nullable', 'regex:/^\+62\d{9,15}$/'],
+            'class_id' => 'required|exists:classes,id',
+        ]);
 
         if ($validator->fails()) {
             $errors["Baris " . ($index + 2)] = $validator->errors()->all();
@@ -165,13 +172,12 @@ if (count($diff) > 0) {
         }
 
         Student::create([
-        'nisn' => $data['nisn'],
-        'name' => $data['name'],
-        'image' => null,
-        'wa_ortu' => $data['wa_ortu'],
-        'class_id' => $data['class_id'],
-    ]);
-
+            'nisn' => $data['nisn'],
+            'name' => $data['name'],
+            'image' => null,
+            'wa_ortu' => $data['wa_ortu'],
+            'class_id' => $data['class_id'],
+        ]);
     }
 
     if (!empty($errors)) {
@@ -179,6 +185,6 @@ if (count($diff) > 0) {
     }
 
     return back()->with('success', 'Berhasil mengimpor murid.');
-}
+    }
 
 }
