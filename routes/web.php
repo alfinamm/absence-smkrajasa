@@ -11,7 +11,9 @@ use App\Http\Controllers\ReportAttendanceController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\ScanQrCodeController;
 use App\Models\Student;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +99,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/absence', [AbsenceController::class, 'index'])->name('absence.index');
     Route::post('/absence', [AbsenceController::class, 'store'])->name('absence.store');
+
+    Route::get('/scan-qrcode', [ScanQrCodeController::class, 'index'])->name('scan-qrcode.index');
+    Route::post('/scan-qrcode', [ScanQrCodeController::class, 'store'])->name('scan-qrcode.store');
 
 
 
