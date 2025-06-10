@@ -97,8 +97,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/report-attendance-token', [ReportAttendanceController::class, 'showByToken'])->name('report-attendance.show.by.token');
 
-    Route::get('/absence', [AbsenceController::class, 'index'])->name('absence.index');
-    Route::post('/absence', [AbsenceController::class, 'store'])->name('absence.store');
+   Route::get('/absence', function () {
+    return redirect('http://localhost:8000/scan-qrcode');
+    })->name('absence.index');
+
 
     Route::get('/scan-qrcode', [ScanQrCodeController::class, 'index'])->name('scan-qrcode.index');
     Route::post('/scan-qrcode', [ScanQrCodeController::class, 'store'])->name('scan-qrcode.store');

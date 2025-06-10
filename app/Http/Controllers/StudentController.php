@@ -120,6 +120,8 @@ class StudentController extends Controller
     public function import(ImportStudentsRequest $request)
 {
     $file = $request->file('file');
+
+    
     $rows = array_map('str_getcsv', file($file));
 
     if (empty($rows)) {

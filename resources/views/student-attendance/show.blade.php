@@ -100,10 +100,10 @@
                       <a href="#" class="text-body">{{ $item->name }}</a>
                     </td>
                     <td>
-                      <p class="badge bg-soft-success" style="font-size: 4mm">{{ $attendance?->clock_in->format('d-F-Y H:i:s') ?? '-' }}</p>
+                      <p class="badge bg-soft-success" style="font-size: 4mm">{{ $attendance?->clock_in?->format('H:i') ?? '-' }}</p>
                     </td>
                     <td>
-                      <p class="badge bg-soft-danger" style="font-size: 4mm" >{{ $attendance?->clock_out->format('d-F-Y H:i:s') ?? '-' }}</p>
+                      <p class="badge bg-soft-danger" style="font-size: 4mm" >{{ $attendance?->clock_out?->format('H:i') ?? '-' }}</p>
                     </td>
                     <td>
                       @if ($status === 1)
@@ -177,7 +177,8 @@
       });
     });
 
-    let academic_year = '{{ request()->get("academic_year_id") ?? ($academic_year->id ?? "") }}';
+    let academic_year = '{{ request()->get("academic_year_id") ?? ($academicYear->id ?? "") }}';
+
 
     if (academic_year != '') {
       $('#academic_year_id').val(academic_year).trigger('change');

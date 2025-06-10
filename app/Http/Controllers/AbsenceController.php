@@ -13,18 +13,25 @@ use Milon\Barcode\DNS1D;
 
 class AbsenceController extends Controller
 {
-    public function index(Request $request)
-    {
+  public function index(Request $request)
+{
+    $academicYears = AcademicYear::all();
+    $academic_year = AcademicYear::where('status', 1)->first();
+    $academic_year_id = $academic_year ? $academic_year->id : 0;
+    $date = $request->input('date') ?? now()->format('Y-m-d');
 
-        $currTS = Carbon::parse($request->date)->format("Y-m-d H:i:s");
+    // Jika user memilih tahun ajaran dan tanggal
+    if ($request->filled(['academic_year_id', 'date'])) {
+        $academic_year_id = $request->academic_year_id;
         $date = Carbon::parse($request->date)->format("Y-m-d");
-        $academic_year_id = $request->get('academic_year_id', 0);
+        $currTS = Carbon::parse($request->date)->format("Y-m-d H:i:s");
 
-        if (!empty($academic_year_id) && !empty($request->get('date', null))) {
-            $date = Carbon::parse($request->date)->format("Y-m-d");
-            Student::query()->whereNotNull('class_id')->orWhere('class_id', '!=', 0)->chunk(10000, function ($students) use ($date, $academic_year_id, $currTS) {
+        // Upsert data absen untuk semua siswa
+        Student::whereNotNull('class_id')
+            ->where('class_id', '!=', 0)
+            ->chunk(100, function ($students) use ($date, $academic_year_id, $currTS) {
                 foreach ($students as $student) {
-                    StudentAttendance::query()->upsert([
+                    StudentAttendance::upsert([
                         'date' => $date,
                         'student_id' => $student->id,
                         'class_id' => $student->class_id,
@@ -35,15 +42,16 @@ class AbsenceController extends Controller
                     ], ['date', 'student_id'], ['academic_year_id']);
                 }
             });
-            return view('absence.open', compact('academic_year_id', 'date'));
-        }
-        $academicYears = AcademicYear::all();
-        $academic_year = AcademicYear::query()->where('status', '=', 1)->first();
-        $academic_year_id = 0;
 
-        if ($academic_year) $academic_year_id =  $academic_year->id;
-        return view('absence.index', compact('academicYears', 'academic_year_id', 'date'));
+        // Pastikan academicYears juga dikirim ke absence.open jika dibutuhkan untuk tampilan
+        return view('absence.open', compact('academic_year_id', 'date', 'academicYears'));
     }
+
+    // Jika belum ada input, tampilkan form pilih tahun & tanggal
+    return view('absence.index', compact('academicYears', 'academic_year_id', 'date'));
+}
+
+
 
     public function store(Request $request)
     {

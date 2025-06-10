@@ -8,11 +8,12 @@ use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log; // untuk debug log (opsional)
 
 class ScanQrCodeController extends Controller
 {
     public function index() {
-        return view('qr-scan.manual');
+        return view('student-attendance.qr-scan.manual');
     }
 
     public function store(Request $request) {
@@ -53,20 +54,36 @@ class ScanQrCodeController extends Controller
     }
 
     protected function sendWhatsappNotification($student) {
-        $token = "woUkq1q2WNHhnhe5HLpr";
+    $token = "woUkq1q2WNHhnhe5HLpr";
+    $to = ltrim($student->wa_ortu, '+');
 
-        $to = $student->parent_phone_number;
-        if (!$to) return; // jangan kirim jika tidak ada nomor
+    if (!$to) return;
 
-        $message = "Halo Orang Tua dari *{$student->name}*.\nAnak Anda telah berhasil melakukan absensi hari ini pada pukul *" . now()->format('H:i') . "*.\nTerima kasih.";
+    $studentName = $student->name ?? 'Siswa';
+    $message = "Halo Orang Tua dari *{$studentName}*.\n"
+             . "Anak Anda telah berhasil melakukan absensi hari ini pada pukul *" . now()->format('H:i') . "*.\n"
+             . "Terima kasih.";
 
-        Http::withHeaders([
-            'Authorization' => $token
-        ])->post('https://api.fonnte.com/send', [
-            'target' => $to,
-            'message' => $message,
-            'delay' => 1,
-            'countryCode' => '62'
-        ]);
+    Log::info('Isi pesan WA:', ['message' => $message]);
+    Log::info('Nomor WA yang dikirim:', ['to' => $to]);
+
+    if (empty(trim($message))) {
+        Log::error('Pesan WA kosong. Tidak dikirim.');
+        return;
     }
+
+   $response = Http::asForm() // ini penting!!
+    ->withOptions([
+        'verify' => base_path('cacert.pem')
+    ])
+    ->withHeaders([
+        'Authorization' => $token
+    ])
+    ->post('https://api.fonnte.com/send', [
+        'target' => $to,
+        'message' => $message,
+        'delay' => 1
+    ]);
+
+}
 }
