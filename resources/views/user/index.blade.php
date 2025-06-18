@@ -15,7 +15,7 @@
 @section('content')
   @component('common-components.breadcrumb')
     @slot('title')
-      Murid
+      User
     @endslot
     @slot('pagetitle')
       Daftar
@@ -98,8 +98,8 @@
     <div class="col-lg-12">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title mb-0">Murid</h4>
-          <p class="card-title-desc">Daftar murid yang tersedia.</p>
+          <h4 class="card-title mb-0">User</h4>
+          <p class="card-title-desc">Daftar user yang tersedia.</p>
           <div class="table-responsive mb-4">
             {{-- <table class="table table-centered table-nowrap mb-0"> --}}
             <table id="datatable" class="table table-bordered dt-responsive nowrap dataTable no-footer dtr-inline collapsed" style="border-collapse: collapse; border-spacing: 0rem; width: 100%;" aria-describedby="datatable_info">
